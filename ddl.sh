@@ -29,7 +29,7 @@ tables_menu(){
             5) select_from_table ;;
             6) delete_from_table ;;
             7) updating_table ;;
-            8) ./main_menu.sh ;;
+            8) ./main.sh ;;
             9) exit ;;
             *) echo "Ooops! wrong input <<check again>>" tables_menu
         esac
@@ -41,6 +41,32 @@ tables_menu(){
 }
 creating_table()
 {
+                echo $dbname 
+
+    read -p "Enter table name: " tname
+	if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
+		if [ -d "DBMS_dir/$dbname/$tname" ];then
+			echo " Table already exist !"
+			creating_db
+		else
+			cd DBMS_dir/$dbname
+            touch $tname
+            touch $tname.metadata
+            read -p "Enter number of columns: " n_col
+            for ((i=1;i<=$n_col;i++))
+            {
+                read -p "Enter data for column number $i : " data
+                echo  $data >> $tname
+            }
+            echo "Data inserted successfully ! "
+            tables_menu
+		fi			
+	else
+		echo "Enter Valid name plz;"
+		creating_db
+	fi
+    ######################
+<<C
     read -p "Enter table name: " tname
         if [ -f $tname ];then
             echo "this table already exist , choose another name "
@@ -56,6 +82,7 @@ creating_table()
             echo "Data inserted successfully ! "
         fi
     echo "Hello from << creating_table >> function !"
+C
 }
 listing_table()
 {
@@ -81,5 +108,6 @@ updating_table()
 {
     echo "Hello from << updating_table >> function !"
 }
-
+############
 tables_menu
+###########

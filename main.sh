@@ -6,7 +6,7 @@ describtion: this file represent DDl operation
 Authors: <Ahmed Abdelsalam>.<Ismael Ramadan> 
 HI
 echo    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo -e "\n~~~~~~~~~< Welcome TO DBMS Using Shell Scripting >~~~~~~~~~~\n"
+echo      "~~~~~~~~~< Welcome TO DBMS Using Shell Scripting >~~~~~~~~~~"
 echo    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
 main_menu(){
@@ -15,7 +15,7 @@ main_menu(){
     echo "~~~~~~~<   2. List Databases        >~~~~~~~"
     echo "~~~~~~~<   3. Connect To Databases  >~~~~~~~"
     echo "~~~~~~~<   4. Drop Database         >~~~~~~~"
-    echo "~~~~~~~<   5. Exit                  >~~~~~~~"
+    echo -e "~~~~~~~<   5. Exit                  >~~~~~~~\n"
 
     read -p "Enter the Number of your choice:  " choice
 
@@ -35,38 +35,45 @@ main_menu(){
 }
 creating_db()
 {
-	read -p "Enter DB name plz;" dbname
+	read -p "Enter DB name plz:  " dbname
 	if [[ "$dbname" =~ ^[a-zA-Z]{3,15}$ ]];then
 		if [ -d "DBMS_dir/$dbname" ];then
 			echo " DBname already exist !"
 			creating_db
 		else
 			mkdir DBMS_dir/$dbname
+                        echo " '$dbname' created successfully!"
                         main_menu
 		fi			
 	else
-		echo "Enter Valid name plz;"
+		echo "Enter Valid name plz:  "
 		creating_db
 	fi
 
 }
 list_db()
-{       if [ $(ls -A DBMS_dir) ];then
+{      
+        if [[ $(ls -A DBMS_dir) ]];then
+                echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                 ls DBMS_dir
+                echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         else
-                echo "Ooops. No Databases to Display" 
+                echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                echo -e "\nOoops. No Databases to Display " 
+                echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+
         fi
         main_menu
 }
 connect_db()
 {
-        read -p "Enter DB name plz;" dbname
+        read -p "Enter DB name plz:  " dbname
 	if [[ "$dbname" =~ ^[a-zA-Z]{3,15}$ ]];then
 		if [ -d "DBMS_dir/$dbname" ];then
-			echo "right plz wait !"
-                        sleep 2
-                        export $dbname
-			./ddl.sh
+			echo " right plz wait ! "
+                        sleep 1
+                        cd DBMS_dir/$dbname
+			. /home/ahmedabdelsalam/DevOps/DBMS/ddl.sh 
 		else
 		        read -p "DB doesn't exist >> creat new ? [y|n] " ch 
                         case $ch in 
@@ -82,16 +89,18 @@ connect_db()
 }
 drop_db()
 {
-        read -p "Enter DB name plz;" dbname
+        read -p "Enter DB name plz: " dbname
 	if [[ "$dbname" =~ ^[a-zA-Z]{3,15}$ ]];then
 		if [ -d "DBMS_dir/$dbname" ];then
                         rm -rf DBMS_dir/$dbname 
+                        echo " ' $dbname ' Dropped successfully !"
+                        main_menu       
 		else
                         echo "DB doesn't exist !"
                         main_menu
 		fi			
 	else
-		echo "Enter Valid name plz;"
+		echo "Enter Valid name plz:  "
 		drop_db
 	fi
 }

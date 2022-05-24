@@ -45,19 +45,17 @@ creating_table()
     
     read -p "Enter table name: " tname
 	if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
-		if [ -d "DBMS_dir/$dbname/$tname" ];then
+		if [ -f "$tname" ];then
 			echo " Table already exist !"
 			creating_table
 		else
             touch $tname
             touch $tname.metadata
-            read -p "Enter number of columns: " n_col
-            for ((i=1;i<=$n_col;i++))
-            {
-                read -p "Enter data for column number $i : " data
-                echo  $data >> $tname
-            }
-            echo "Data inserted successfully ! "
+            read -p "Enter number of columns:  " n_col
+            echo "Remember: First Column is 'Primary Key' "
+            columns
+            echo "'$tname' created successfully ! "
+            cat $tname.metadata
             tables_menu
 		fi			
 	else
@@ -65,23 +63,30 @@ creating_table()
 		creating_table
 	fi
     ######################
-<<C
-    read -p "Enter table name: " tname
-        if [ -f $tname ];then
-            echo "this table already exist , choose another name "
-            creating_table
-        else
-            touch $tname            
-            read -p "Enter number of columns: " n_col
-            for ((i=1;i<=$n_col;i++))
+}
+columns(){
+    for ((i=1;i<=$n_col;i++))
             {
-                read -p "Enter data for column number $i : " data
-                echo  $data >> $tname
+                read -p "Enter column'$i' name: " col
+                if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
+                    echo -e "choose data type \n    [1] Integer  [2] String >> "
+                    read col_type
+                    if (($col_type==1)) || (($col_type ==2));then
+                        case $col_type in 
+                            1) col_type="int" ;;
+                            2) col_type="string" ;;
+                            *) echo "invalid choice!!"
+                        esac
+                        echo "$col:$col_type">>$tname.metadata
+                    else
+                        echo "Invalid input!!"
+                    fi
+                else
+                    echo "Invalid Column Name !"
+                    columns
+                fi
+
             }
-            echo "Data inserted successfully ! "
-        fi
-    echo "Hello from << creating_table >> function !"
-C
 }
 listing_table()
 {
@@ -100,7 +105,23 @@ listing_table()
 }
 droping_table()
 {
-    echo "Hello from << droping_table >> function !"
+    #echo "Hello from << droping_table >> function !"
+    read -p "Enter table name: " tname
+	if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
+		if [ -f "$tname" ];then
+            rm $tname
+            rm $tname.metadata
+            echo "'$tname' Dropped successfully ! "
+            tables_menu
+			
+		else
+            echo " $tname doesn't exist !"
+			droping_table
+		fi			
+	else
+		echo -e "Enter Valid name plz!! \n"
+		droping_table
+	fi
     tables_menu
 }
 insert_into_table()

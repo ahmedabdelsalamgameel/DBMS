@@ -9,6 +9,8 @@ echo    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo      "~~~~~~~~~< Welcome TO DBMS Using Shell Scripting >~~~~~~~~~~"
 echo    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 
+############# MAin menu section #################
+
 main_menu(){
     echo -e "\n  ~~~~~~~~~< choose from menu: >~~~~~~~~~~\n"
     echo "~~~~~~~<   1. Create Database       >~~~~~~~"
@@ -33,6 +35,8 @@ main_menu(){
         main_menu
     fi
 }
+
+########  creating database section #############
 creating_db()
 {
 	read -p "Enter DB name plz:  " dbname
@@ -51,6 +55,9 @@ creating_db()
 	fi
 
 }
+
+######### listing tables section ################
+
 list_db()
 {      
         if [[ $(ls -A DBMS_dir) ]];then
@@ -65,6 +72,9 @@ list_db()
         fi
         main_menu
 }
+
+######### connect database section ##############
+
 connect_db()
 {
         read -p "Enter DB name plz:  " dbname
@@ -87,6 +97,9 @@ connect_db()
 		connect_db
 	fi
 }
+
+########## dropping database section ############
+
 drop_db()
 {
         read -p "Enter DB name plz: " dbname
@@ -109,51 +122,3 @@ drop_db()
 #############
 main_menu
 ###########
-<<C
-select choice in creat_DB list_Db connect_DB drop_DB
-do
-	case $choice in
-		creat_DB) echo "enter DB name"
-			read DBname
-			if [[ "$DBname" =~ ^[a-zA-Z]{3,15}$ ]]; 
-			then
-				if [ -d "DBS/$DBname" ]
-                                then
-                                        echo "this DBname is exist"
-                                else
-                                        mkdir DBS/$DBname
-                                fi
-
-			else
-				echo "DBname must begin with charcter"
-			fi
-			;;
-		list_Db) ls DBS
-			;;
-		connect_DB) echo "enter DB name"
-                        read DBname
-			  if [ -d "DBS/$DBname" ]
-                                then
-                                        echo "this DBname is exist"
-                                else
-                                        echo "this DBname is not exist"
-                                fi
-
-			;;
-		drop_DB) echo "enter DB name"
-                         read DBname
-                          if [ -d "DBS/$DBname" ]
-                                then
-					rm -rf DBS/$DBname
-                                else
-                                        echo "this DBname is not exist"
-                                fi
-
-			;;
-		5)exit
-			;;
-		*)echo "$REPLY is not one of choices"
-			;;
-	esac
-done	
-C

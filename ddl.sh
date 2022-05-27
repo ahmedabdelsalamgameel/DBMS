@@ -6,6 +6,8 @@ Authors: <Ahmed Abdelsalam>.<Ismael Ramadan>
 HI
 
 #Upon user Connect to Specific Database, there will be new Screen with this Menu:
+
+
 tables_menu(){
     
     echo -e "\n~~~~~~~~~< choose from menu: >~~~~~~~~~~\n"
@@ -40,6 +42,11 @@ tables_menu(){
     fi
 
 }
+
+
+####### creating table  section #############
+
+
 creating_table()
 {
     
@@ -66,31 +73,36 @@ creating_table()
 }
 columns(){
     for ((i=1;i<=$n_col;i++))
-            {
-                read -p "Enter column'$i' name: " col
-                if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
-                    echo -e "choose data type \n    [1] Integer  [2] String >> "
-                    read col_type
-                    if (($col_type==1)) || (($col_type ==2));then
-                        case $col_type in 
-                            1) col_type="int" ;;
-                            2) col_type="string" ;;
-                            *) echo "invalid choice!!"
-                        esac
-                        echo "$col:$col_type">>$tname.metadata
-                    else
-                        echo "Invalid input!!"
-                    fi
+    {
+              
+        read -p "Enter column'$i' name: " col
+            if [[ "$col" =~ ^[a-zA-Z]{2,15}$ ]];then
+                echo -e "choose data type \n    [1] Integer  [2] String >> "
+                read col_type
+                if (($col_type==1)) || (($col_type ==2));then
+                    case $col_type in 
+                        1) col_type="int" ;;
+                        2) col_type="string" ;;
+                        *) echo "invalid choice!!"
+                    esac
+                    echo "$col:$col_type">>$tname.metadata
                 else
-                    echo "Invalid Column Name !"
-                    columns
+                    echo "Invalid input!!"
                 fi
-
-            }
+            else
+                echo "Invalid Column Name !"
+            fi
+    }
 }
+
+
+
+####### listing tables section ##############
+
+
+
 listing_table()
 {
-#echo "Hello from << listing_table >> function !"
     if [[ $(ls -A $PWD) ]];then
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
         ls $PWD
@@ -103,6 +115,11 @@ listing_table()
     fi
     tables_menu
 }
+
+
+####### dropping table section ##############
+
+
 droping_table()
 {
     #echo "Hello from << droping_table >> function !"
@@ -124,26 +141,221 @@ droping_table()
 	fi
     tables_menu
 }
+
+
+
+####### inserting into table section ##########
+
+
 insert_into_table()
 {
-    echo "Hello from << insert_into_table >> function !"
+    read -p "Enter table name: " tname
+	if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
+		if [ -f "$tname" ];then
+            IFS=$'\n' read -d '' -r -a lines <"$tname.metadata"
+            newrecord=""
+            for i in "${!lines[@]}"
+            do
+                IFS=':' read -r -a field <<< "${lines[i]}";
+                fieldname=${field[0]};
+                fieldtype=${field[1]};
+                count=0
+                pk=0
+
+                echo "Enter value of  '$fieldname' :    "
+                read fieldvalue
+                    
+
+
+                #primary key
+                if [[ $i -eq 0 ]]
+                then
+                    IFS=$'\n' read -d '' -r -a data < "$tname"
+                    #echo "${data[@]}"
+
+                    for j in "${!data[@]}"
+                    do
+                        IFS=':' read -r -a record <<< "${data[j]}"
+                        if [[ $record[0] == $fieldvalue ]]
+                        then
+                            pk=1
+                            echo "primary key must be uniqe"
+                        fi
+                    
+                    done
+                fi
+
+                if [[ $fieldtype == "int" ]]
+                then
+                    if ! [[ $fieldvalue =~ ^[0-9]+$ ]]
+                    then
+                        count=1
+                        echo " value must be number"
+                    fi
+                fi
+
+
+                if [[ $count -eq 0 ]]
+                then
+                    if [[ $i -eq 0 ]]
+                    then
+                        newrecord=$fieldvalue
+                    else
+                        newrecord="$newrecord:$fieldvalue"
+                    fi
+                else
+                    echo "invalid record"
+                fi
+
+            done
+            if ! [[ $newrecord == "" ]]
+            then
+                echo $newrecord>>"$tname"
+                echo "Record Stored successfully"
+            else
+                echo "Record Empty!!"
+                insert_into_table
+            fi
+		else
+            echo " $tname doesn't exist !"
+			insert_into_table
+		fi			
+	else
+		echo -e "Enter Valid name plz!! \n"
+		insert_into_table
+	fi
     tables_menu
+    
+        tables_menu
 }
+
+
+###### select from table #####################
+
+
+
 select_from_table()
 {
-    echo "Hello from << select_from_table >> function !"
+    echo "Enter Table Name :"
+    read tname
+
+    if [ -f "$tname" ] && [ -f  "$tname.metadata" ]; then 
+
+        awk -F: 'BEGIN { ORS=":" }; { print $1 }' $tname.metadata
+        #hint: ORS stands for output record separator
+        printf "\n"
+        cat  $tname 
+    else 
+        echo "$tname Doesn't Exist!!"
+        select_from_table
+    fi
     tables_menu
 }
+
+
+##### delete from table #######################
+
+
 delete_from_table()
 {
-    echo "Hello from << delete_from_table >> function !"
+    read -p "Enter table name: " tname
+	if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
+		if [ -f "$tname" ];then
+            read -p "Enter column name:  " colname
+            column_names=($(awk -F: '{print $1}' $tname.metadata))
+            checkcol=0
+            for i in "${!column_names[@]}"
+            do
+                if [[ $colname == "${column_names[i]}" ]];then
+                    checkcol=1
+                    colNum=$(($i+1))
+                fi
+            done
+            if [[ $checkcol == 1 ]];then
+                read -p "Enter the value to delete record:  " rval
+                rnumber=($(awk -v varCol="$colNum" -v varValue="$rval" -F: '{if ($varCol == varValue) {print FNR}}' "$tname"))
+                c=0
+                for i in "${!rnumber[@]}"
+                do
+                    index=${rnumber[$i]}
+                    index=$(($index-$c))
+                    sed -i "$index"d $tname
+                    c=$(($c+1))
+                done
+                echo " deleted !!"
+                tables_menu
+            else
+                echo "Invalid column name!!"
+                delete_from_table
+            fi
+		else
+            echo " $tname doesn't exist !"
+			delete_from_table
+		fi			
+	else
+		echo -e "Enter Valid name plz!! \n"
+		delete_from_table
+	fi
+    tables_menu
+
     tables_menu
 }
+
+
+##### updating table ###########################
+
+
 updating_table()
 {
-    echo "Hello from << updating_table >> function !"
+    read -p "Enter table name: " tname
+	if [[ "$tname" =~ ^[a-zA-Z]{3,15}$ ]];then
+		if [ -f "$tname" ];then
+            read -p "Enter column name:  " colname
+            column_names=($(awk -F: '{print $1}' $tname.metadata))
+            checkcol=0
+            count=-1
+            for i in "${column_names[@]}"
+            do
+                count=$count+1
+                if [[ $colname == $i ]];then
+                    checkcol=1
+                    colNum=$(($count+1))
+                    echo $i
+                fi
+            done
+            if [[ $checkcol == 1 ]];then
+                read -p "Enter the record value you need to update:  " rval
+                read -p "Enter the new value :  " nval
+                u_recordes=($(awk -v varcol="$colNum"  -F: '{print $varcol}'  $tname ))
+                c=0
+                index=0
+                for j in "${u_recordes[@]}"
+                do
+                    index=$(($index+1))
+                    if [[ $rval == $j ]];then
+                        index1=$index
+			            index1=$(($index1-$c))
+                        sed -i "$index""s/$rval/$nval/g" $tname
+                        c=$(($c+1))
+                    fi
+                done
+                echo "$rval updated to $nval !!"
+                tables_menu
+            else
+                echo "Invalid column name!!"
+                updating_table
+            fi
+		else
+            echo " $tname doesn't exist !"
+			updating_table
+		fi			
+	else
+		echo -e "Enter Valid name plz!! \n"
+		updating_table
+	fi
     tables_menu
 }
+
 ############
 tables_menu
 ###########

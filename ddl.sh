@@ -59,11 +59,20 @@ creating_table()
             touch $tname
             touch $tname.metadata
             read -p "Enter number of columns:  " n_col
+            if (($n_col >=1)) && (($n_col <=20));then
             echo "Remember: First Column is 'Primary Key' "
             columns
             echo "'$tname' created successfully ! "
             cat $tname.metadata
             tables_menu
+            else
+                echo " invalid input !! "
+                rm $tname
+                rm $tname.metadata
+                creating_table
+            fi
+
+
 		fi			
 	else
 		echo -e "Enter Valid name plz!! \n"
@@ -83,14 +92,18 @@ columns(){
                     case $col_type in 
                         1) col_type="int" ;;
                         2) col_type="string" ;;
-                        *) echo "invalid choice!!"
+                        *) echo "invalid choice!!" 
                     esac
                     echo "$col:$col_type">>$tname.metadata
                 else
                     echo "Invalid input!!"
+                    sed -i d $tname.metadata
+                    columns
                 fi
             else
                 echo "Invalid Column Name !"
+                sed -i d $tname.metadata
+                columns
             fi
     }
 }
@@ -105,7 +118,7 @@ listing_table()
 {
     if [[ $(ls -A $PWD) ]];then
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        ls $PWD
+        ls -F $PWD | grep -v ".metadata"
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
     else
         echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
@@ -231,20 +244,46 @@ insert_into_table()
 
 
 ###### select from table #####################
+selAll()
+{
+    echo "ـــــــــــــــــــــــــــــــــــــــــ"
+    awk -F: 'BEGIN { ORS=":" }; { print $1 }' $tname.metadata
+    #hint: ORS stands for output record separator
+    printf "\n"
+    echo "ـــــــــــــــــــــــــــــــــــــــــ"
+    cat  $tname 
+    echo -e "\nـــــــــــــــــــــــــــــــــــــــــ"
 
+}
+selcol()
+{
+    read -p "Enter coulmn name: " colname
+        if  grep -q $colname $tname.metadata ; then
+            read -p "Enter $colname value:  " colval
+            result=$(grep $colval $tname)
+            echo $result
+        else
+            echo "Doesn't Exist ! try Again.."
+        fi
+}
 
 
 select_from_table()
 {
     echo "Enter Table Name :"
     read tname
-
-    if [ -f "$tname" ] && [ -f  "$tname.metadata" ]; then 
-
-        awk -F: 'BEGIN { ORS=":" }; { print $1 }' $tname.metadata
-        #hint: ORS stands for output record separator
-        printf "\n"
-        cat  $tname 
+    if [ -f "$tname" ] && [ -f  "$tname.metadata" ]; then
+        echo -e "choose Selection type \n    [1] Select All >>   [2] Select by Column >>   "
+        read sel_type 
+        if (($sel_type==1)) || (($sel_type ==2));then
+            case $sel_type in 
+                1) selAll ;;
+                2) selcol ;;
+                *) echo "invalid choice!!" 
+            esac
+        else
+            select_from_table
+        fi
     else 
         echo "$tname Doesn't Exist!!"
         select_from_table

@@ -4,9 +4,8 @@
 project: DBMS <bash script>
 describtion: this file represent DDl operation 
 Authors: <Ahmed Abdelsalam>.<Ismael Ramadan> 
-HI
 
-<<discription
+
 this is mini version of DBMS using bash script
 == about databases : you can create , list , connect  and drop databases 
 == about each database : you can create , list and drop tables  
@@ -17,8 +16,7 @@ you can
 - update 
 - delete 
 from tables 
-discription 
-
+HI
 
 
 echo    "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
